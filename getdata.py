@@ -58,7 +58,7 @@ class SpeciesScaper:
          if(i==61):
             # Avoid bug in dutchavifauna.nl
             continue
-         print("[" + str(i) + "/" + str(self.nSpecies)+ "] " + str(self.collectedNamesPretty[i]))
+         print("[" + str(i+1) + "/" + str(self.nSpecies)+ "] " + str(self.collectedNamesPretty[i]))
          self.FindData(i)
 
    def FindData(self, index):
@@ -142,7 +142,7 @@ class SpeciesScaper:
       plt.title(title)
       plt.legend()
       plt.savefig(self.collectedNames[index])
-      plt.clf()
+      plt.close()
 
 
 ###########################################
