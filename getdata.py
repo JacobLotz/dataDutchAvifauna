@@ -7,8 +7,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class SpeciesScaper:
-   def __init__(self, url_):
+   def __init__(self, url_, month_, firsthalve_):
       self.url = url_
+      self.month = month_- 1
+      self.firsthalve = firsthalve_
+
       self.collectedLinks = []
       self.collectedNames = []
       self.collectedNamesPretty = []
@@ -132,19 +135,40 @@ class SpeciesScaper:
       if(cdna):
          title = title + " - Geen CDNA sinds: " + cdna
 
+      # File name
+      file_name = ''.join(filter(str.isalnum,self.collectedNames[index]))
+      file_name = str(index+1).zfill(3) + "-" + file_name
+
+
+      # Month markers
+      xm1 = self.month
+      xm2 = self.month
+      if (firsthalve==True):
+         xm1 = xm1 - 0.3
+         xm2 = xm2 + 0.1
+      else:
+         xm1 = xm1 - 0.1
+         xm2 = xm2 + 0.3
+
       # Plot
       plt.figure(figsize=(8,3))
       plt.bar(X_axis - 0.2, y_axis0, 0.2, label = ' 1-10')
       plt.bar(X_axis + 0.0, y_axis1, 0.2, label = '11-20')
       plt.bar(X_axis + 0.2, y_axis2, 0.2, label = '21-31')
+      #plt.axvline(x=xm1, ymin = 0.0, ymax=0.1, color='#d62728')
+      #plt.axvline(x=xm2, ymin = 0.0, ymax=0.1, color='#d62728')
+      plt.axvline(x=xm1, linewidth=1.0, color='#d62728')
+      plt.axvline(x=xm2, linewidth=1.0, color='#d62728')
       plt.xticks(X_axis, x_axis)
       plt.yticks(Y_axis)
       plt.title(title)
       plt.legend()
-      plt.savefig(self.collectedNames[index])
+      plt.savefig(file_name)
       plt.close()
 
 
 ###########################################
 link = "https://www.dutchavifauna.nl/list"
-speciesscraper = SpeciesScaper(link)
+month = 8
+firsthalve = False 
+speciesscraper = SpeciesScaper(link, month, firsthalve)
