@@ -147,12 +147,12 @@ class SpeciesScaper:
       xm1 = self.month
       xm2 = self.month
       if (firsthalve==True):
-         xm1 = xm1 - 0.1
-         xm2 = xm2 + 0.3
+         xm1 = xm1 - 0.3
+         xm2 = xm2 + 0.1
       else:
 
-         xm1 = xm1 + 0.7
-         xm2 = xm2 + 1.1
+         xm1 = xm1 - 0.1
+         xm2 = xm2 + 0.3
 
       # Plot
       plt.figure(figsize=(8,3))
