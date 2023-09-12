@@ -6,6 +6,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+
+
 class SpeciesScaper:
    def __init__(self, url_, month_, firsthalve_):
       self.url = url_
@@ -144,11 +147,12 @@ class SpeciesScaper:
       xm1 = self.month
       xm2 = self.month
       if (firsthalve==True):
-         xm1 = xm1 - 0.3
-         xm2 = xm2 + 0.1
-      else:
          xm1 = xm1 - 0.1
          xm2 = xm2 + 0.3
+      else:
+
+         xm1 = xm1 + 0.7
+         xm2 = xm2 + 1.1
 
       # Plot
       plt.figure(figsize=(8,3))
@@ -169,6 +173,6 @@ class SpeciesScaper:
 
 ###########################################
 link = "https://www.dutchavifauna.nl/list"
-month = 8
+month = 9
 firsthalve = False 
 speciesscraper = SpeciesScaper(link, month, firsthalve)
