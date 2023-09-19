@@ -173,6 +173,6 @@ class SpeciesScaper:
 
 ###########################################
 link = "https://www.dutchavifauna.nl/list"
-month = 9
-firsthalve = False 
+month = 10
+firsthalve = True
 speciesscraper = SpeciesScaper(link, month, firsthalve)
