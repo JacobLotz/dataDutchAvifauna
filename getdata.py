@@ -5,12 +5,15 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import matplotlib.pyplot as plt
 import numpy as np
-
-
-
+import pandas as pd
+import os
+import shutil
 
 class SpeciesScaper:
-   def __init__(self, url_, month_, firsthalve_):
+   def __init__(self):
+      pass
+
+   def GetData(self, url_, month_, firsthalve_):
       self.url = url_
       self.month = month_- 1
       self.firsthalve = firsthalve_
@@ -32,6 +35,125 @@ class SpeciesScaper:
       self.FindAllData()
 
       self.CloseWebDriver()
+
+   def ReadData(self):
+         self.ReadDataFrame = pd.read_csv("data.csv")
+         print(self.ReadDataFrame.head())
+
+   def PlotAllData(self, month_, period):
+      self.month = month_- 1
+      self.period = period
+
+      n_frames = len(self.ReadDataFrame)
+
+      self.path = str(month_) + "-" + str(period)
+
+      if os.path.exists("./" + self.path):
+         shutil.rmtree("./" + self.path)
+      os.mkdir("./" + self.path)
+
+      shutil.copyfile("./main.tex", "./" + self.path + "/main.tex")
+
+      # Create latex file
+      self.latexfile = open(self.path + "/fig.tex", "a")
+
+
+      for i in range(n_frames):
+         print("-----------------")
+         self.PlotData(self.ReadDataFrame.iloc[i])
+
+      self.latexfile.close()
+
+   def PlotData(self, plotdf):
+      # Transform data
+      d0 = plotdf.Data0
+      d0 = d0[1:-1].split(", ")
+      d0 = [int(x) for x in d0]
+
+      d1 = plotdf.Data1
+      d1 = d1[1:-1].split(", ")
+      d1 = [int(x) for x in d1]
+
+      d2 = plotdf.Data2
+      d2 = d2[1:-1].split(", ")
+      d2 = [int(x) for x in d2]
+
+      # Plotting criterium
+      xm1 = 0.0
+      xm2 = 0.0
+
+      if self.period == 1:
+         if self.month == 0:
+            total = d2[-1]+d0[0]+d1[0]
+            xm1 = 11 + 0.1
+            xm2 = 0 + 0.1
+         else:
+            total = d2[self.month-1]+d0[self.month]+d1[self.month]
+            xm1 = self.month-1 + 0.1
+            xm2 = self.month + 0.1
+
+      elif self.period == 2:
+         total = d0[self.month]+d1[self.month]+d2[self.month]
+         xm1 = self.month - 0.3
+         xm2 = self.month + 0.3
+
+      elif self.period == 3:
+         if self.month == 11:
+            total = d1[-1] + d2[-1] + d0[0]
+            xm1 = self.month - 0.1
+            xm2 = 0 - 0.1
+         else:
+            total = d1[self.month] + d2[self.month] + d0[self.month-1]
+            xm1 = self.month - 0.1
+            xm2 = self.month + 1 - 0.1
+
+      if total < 3:
+         return
+
+
+      # Find maximum and total
+      maxi = max([max(d0), max(d1), max(d2)])
+      tot  = sum([sum(d0), sum(d1), sum(d2)])
+
+      # Choose lenght of y tiks
+      if(maxi<5):
+         step = 1
+      elif(maxi<11):
+         step = 2
+      elif(maxi<20):
+         step = 4
+      elif(maxi<30):
+         step = 5
+      elif(maxi<60):
+         step = 10;
+      else:
+         step = 20
+
+      x_axis = [ "Jan", "Feb", "Maa", "Apr", "Mei", "Jun",
+                 "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"]
+      # Tiks
+      Y_axis = range(0, maxi+1, step)
+      X_axis = np.arange(len(x_axis))
+
+      # Plot
+      plt.figure(figsize=(8,3))
+      plt.bar(X_axis - 0.2, d0, 0.2, label = ' 1-10')
+      plt.bar(X_axis + 0.0, d1, 0.2, label = '11-20')
+      plt.bar(X_axis + 0.2, d2, 0.2, label = '21-31')
+      plt.axvline(x=xm1, linewidth=1.0, color='#d62728')
+      plt.axvline(x=xm2, linewidth=1.0, color='#d62728')
+      plt.xticks(X_axis, x_axis)
+      plt.yticks(Y_axis)
+      plt.title(plotdf.Title)
+      plt.legend()
+      plt.savefig(self.path +"/" +  plotdf.Filename)
+      plt.close()
+
+
+      self.latexfile.write('\n')
+      self.latexfile.write('\\'+'begin{wrapfigure}{r}{\\textwidth}\n')
+      self.latexfile.write('\\'+'includegraphics[width=0.5\\linewidth]{'+plotdf.Filename+'}\n')
+      self.latexfile.write('\\'+'end{wrapfigure}\n')
 
    def CreateWebDriver(self):
       self.browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -60,12 +182,19 @@ class SpeciesScaper:
    def FindAllData(self):
       indexrange = range(0, self.nSpecies, 1)
 
+      self.DataFrame = pd.DataFrame()
+
       for i in indexrange:
          if(i==61):
             # Avoid bug in dutchavifauna.nl
             continue
          print("[" + str(i+1) + "/" + str(self.nSpecies)+ "] " + str(self.collectedNamesPretty[i]))
          self.FindData(i)
+
+         #if i  == 5:
+         #   break
+
+      self.DataFrame.to_csv("data.csv", sep=',', index=False, encoding='utf-8')
 
    def FindData(self, index):
       link = self.collectedLinks[index]
@@ -110,29 +239,9 @@ class SpeciesScaper:
          y_axis1.append(int(data[1]))
          y_axis2.append(int(data[2]))
 
-      # Find maximum and total
-      maxi = max([max(y_axis0), max(y_axis1), max(y_axis2)])
+
       tot  = sum([sum(y_axis0), sum(y_axis1), sum(y_axis2)])
 
-      # Choose lenght of y tiks
-      if(maxi<5):
-         step = 1
-      elif(maxi<11):
-         step = 2
-      elif(maxi<20):
-         step = 4
-      elif(maxi<30):
-         step = 5
-      elif(maxi<60):
-         step = 10;
-      else:
-         step = 20
-
-      x_axis = [ "Jan", "Feb", "Maa", "Apr", "Mei", "Jun",
-                 "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"]
-      # Tiks
-      Y_axis = range(0, maxi+1, step)
-      X_axis = np.arange(len(x_axis))
 
       title = self.collectedNamesPretty[index] + " (" + str(tot) + ")"
       if(cdna):
@@ -143,36 +252,20 @@ class SpeciesScaper:
       file_name = str(index+1).zfill(3) + "-" + file_name
 
 
-      # Month markers
-      xm1 = self.month
-      xm2 = self.month
-      if (firsthalve==True):
-         xm1 = xm1 - 0.3
-         xm2 = xm2 + 0.1
-      else:
+      # Add to pandas dataframe
+      new_data = {'Name':self.collectedNamesPretty[index], 'Title':title, 'Filename':file_name, 'Data0':y_axis0, 'Data1':y_axis1, 'Data2':y_axis2}
 
-         xm1 = xm1 - 0.1
-         xm2 = xm2 + 0.3
+      self.DataFrame = pd.concat([self.DataFrame, pd.DataFrame([new_data])], ignore_index=True)
 
-      # Plot
-      plt.figure(figsize=(8,3))
-      plt.bar(X_axis - 0.2, y_axis0, 0.2, label = ' 1-10')
-      plt.bar(X_axis + 0.0, y_axis1, 0.2, label = '11-20')
-      plt.bar(X_axis + 0.2, y_axis2, 0.2, label = '21-31')
-      #plt.axvline(x=xm1, ymin = 0.0, ymax=0.1, color='#d62728')
-      #plt.axvline(x=xm2, ymin = 0.0, ymax=0.1, color='#d62728')
-      plt.axvline(x=xm1, linewidth=1.0, color='#d62728')
-      plt.axvline(x=xm2, linewidth=1.0, color='#d62728')
-      plt.xticks(X_axis, x_axis)
-      plt.yticks(Y_axis)
-      plt.title(title)
-      plt.legend()
-      plt.savefig(file_name)
-      plt.close()
 
 
 ###########################################
 link = "https://www.dutchavifauna.nl/list"
-month = 10
+month = 1
 firsthalve = True
-speciesscraper = SpeciesScaper(link, month, firsthalve)
+speciesscraper = SpeciesScaper()
+
+#speciesscraper.GetData(link, month, firsthalve)
+
+speciesscraper.ReadData()
+speciesscraper.PlotAllData(month, 3)
