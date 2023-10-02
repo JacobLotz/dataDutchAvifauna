@@ -5,6 +5,10 @@ __pycache__/
 
 # Output
 *.png
+*/
+
+# Generated dataset
+data.csv
 
 # C extensions
 *.so

@@ -13,10 +13,8 @@ class SpeciesScaper:
    def __init__(self):
       pass
 
-   def GetData(self, url_, month_, firsthalve_):
+   def GetData(self, url_):
       self.url = url_
-      self.month = month_- 1
-      self.firsthalve = firsthalve_
 
       self.collectedLinks = []
       self.collectedNames = []
@@ -57,12 +55,14 @@ class SpeciesScaper:
       # Create latex file
       self.latexfile = open(self.path + "/fig.tex", "a")
 
-
       for i in range(n_frames):
-         print("-----------------")
          self.PlotData(self.ReadDataFrame.iloc[i])
 
       self.latexfile.close()
+
+      command = "(cd " + self.path + "; pdflatex main.tex)"
+      print(command)
+      os.system(command)
 
    def PlotData(self, plotdf):
       # Transform data
@@ -99,17 +99,19 @@ class SpeciesScaper:
 
       elif self.period == 3:
          if self.month == 11:
+            print(str(d1[-1]) + " " + str(d2[-1])+ " " +str(d0[0]))
             total = d1[-1] + d2[-1] + d0[0]
             xm1 = self.month - 0.1
             xm2 = 0 - 0.1
          else:
-            total = d1[self.month] + d2[self.month] + d0[self.month-1]
+            total = d1[self.month] + d2[self.month] + d0[self.month+1]
             xm1 = self.month - 0.1
             xm2 = self.month + 1 - 0.1
 
       if total < 3:
          return
 
+      print(plotdf.Filename + " - " + str(total))
 
       # Find maximum and total
       maxi = max([max(d0), max(d1), max(d2)])
@@ -191,9 +193,6 @@ class SpeciesScaper:
          print("[" + str(i+1) + "/" + str(self.nSpecies)+ "] " + str(self.collectedNamesPretty[i]))
          self.FindData(i)
 
-         #if i  == 5:
-         #   break
-
       self.DataFrame.to_csv("data.csv", sep=',', index=False, encoding='utf-8')
 
    def FindData(self, index):
@@ -260,12 +259,24 @@ class SpeciesScaper:
 
 
 ###########################################
+import argparse
+parser = argparse.ArgumentParser(description="My parser")
+
+parser.add_argument('--new-data', dest='give_new_data', action='store_true')
+parser.set_defaults(give_new_data=False)
+args = parser.parse_args()
+
+print(args.give_new_data)
+
 link = "https://www.dutchavifauna.nl/list"
-month = 1
-firsthalve = True
+
 speciesscraper = SpeciesScaper()
 
-#speciesscraper.GetData(link, month, firsthalve)
+if(args.give_new_data):
+   speciesscraper.GetData(link)
+
 
 speciesscraper.ReadData()
-speciesscraper.PlotAllData(month, 3)
+for month_in in range(1,13):
+   for period_in in range(1,3):
+      speciesscraper.PlotAllData(month_in, period_in)
