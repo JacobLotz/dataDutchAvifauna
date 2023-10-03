@@ -29,6 +29,91 @@ class SpeciesScaper:
 
       self.CreateWebDriver()
 
+
+      self.donotcheck = [  "zwarte_rotgans",
+                           "flamingo",
+                           "koereiger",
+                           "zwarte_ibis",
+                           "aalscholver",
+                           "grote_aalscholver",
+                           "kuhls_%7C_scopoli's_pijlstormvogel",
+                           "pontische_meeuw",
+                           "vale_pijlstormvogel",
+                           "witwangstern",
+                           "poelruiter",
+                           "kleinste_jager",
+                           "kleine_mantelmeeuw",
+                           "baltische_mantelmeeuw",
+                           "zwarte_zeekoet",
+                           "steppekiekendief",
+                           "middelste_bonte_specht",
+                           "roodstuitzwaluw",
+                           "cetti's_zanger",
+                           "bergfluiter_%7C_balkanbergfluiter",
+                           "siberische_tjiftjaf",
+                           "sperwergrasmus",
+                           "taigaboomkruiper",
+                           "roze_spreeuw",
+                           "westelijke_rosse_waaierstaart",
+                           "blauwborst",
+                           "roodsterblauwborst",
+                           "siberische_boompieper",
+                           "roodkeelpieper",
+                           "roodmus",
+                           "dwerggors",
+                           "waterrrietzanger",
+                           "oosterse_%7C_steppe-_%7C_vorkstaartplevier",
+                           "kleine_burgemeester",
+                           "orpheusspotvogel",
+                           "amerikaanse_%7C_aziatische_goudplevier",
+                           "bijeneter",
+                           "gestreepte_strandloper",
+                           "westelijke_%7C_moltoni's_%7C_balkanbaardgrasmus",
+                           "oostelijke_%7C_westelijke_blonde_tapuit",
+                           "bergfluiter_%7C_balkanbergfluiter",
+                           "bastaardarend_%7C_schreeuwarend",
+                           "kolgans",
+                           "groenlandse_kolgans",
+                           "grote_%7C_kleine_geelpootruiter",
+                           "grote_%7C_kleine_grijze_snip",
+                           "lachstern",
+                           "buizerd",
+                           "smelleken",
+                           "ijslands_smelleken",
+                           "steppebuizerd",
+                           "turkestaanse_%7C_daurische_klauwier",
+                           "langstaartklauwier_ssp_erythronotus",
+                           "noordelijke_klapekster",
+                           "siberische_noordelijke_klapekster",
+                           "balearische_roodkopklauwier",
+                           "diksnavelnotenkraker",
+                           "noordse_%7C_swinhoes_boszanger",
+                           "siberische_braamsluiper",
+                           "vale_braamsluiper",
+                           "koperwiek",
+                           "ijslandse_koperwiek",
+                           "aziatische_%7C_stejnegers_roodborsttapuit",
+                           "zwarte_roodstaart",
+                           "oosterse_zwarte_roodstaart",
+                           "frater",
+                           "britse_frater",
+                           "groenlandse_witstuitbarmsijs",
+                           "sneeuwgors",
+                           "ijslandse_sneeuwgors",
+                           "cassiarjunco",
+                           "meenatortel",
+                           "grutto",
+                           "ijslandse_grutto",
+                           "dwerggans",
+                           "oehoe",
+                           "kleine_canadese_gans"
+                           "graszanger",
+                           "grote_kruisbek",
+                           "waterrrietzanger",
+                           "humes_braamsluiper",
+                           "atlantische_proven%C3%A7aalse_grasmus",
+                           "dunbekwulp"]
+
       self.GetSpecies()
       self.FindAllData()
 
@@ -44,13 +129,13 @@ class SpeciesScaper:
 
       n_frames = len(self.ReadDataFrame)
 
-      self.path = str(month_) + "-" + str(period)
+      self.path = str(month_).zfill(2) + "-" + str(period)
 
       if os.path.exists("./" + self.path):
          shutil.rmtree("./" + self.path)
       os.mkdir("./" + self.path)
 
-      shutil.copyfile("./main.tex", "./" + self.path + "/main.tex")
+      shutil.copyfile("./main.tex", "./" + self.path + "/"+self.path+".tex")
 
       # Create latex file
       self.latexfile = open(self.path + "/fig.tex", "a")
@@ -60,8 +145,7 @@ class SpeciesScaper:
 
       self.latexfile.close()
 
-      command = "(cd " + self.path + "; pdflatex main.tex)"
-      print(command)
+      command = "(cd " + self.path + "; pdflatex "+ self.path +".tex)"
       os.system(command)
 
    def PlotData(self, plotdf):
@@ -99,7 +183,6 @@ class SpeciesScaper:
 
       elif self.period == 3:
          if self.month == 11:
-            print(str(d1[-1]) + " " + str(d2[-1])+ " " +str(d0[0]))
             total = d1[-1] + d2[-1] + d0[0]
             xm1 = self.month - 0.1
             xm2 = 0 - 0.1
@@ -153,9 +236,9 @@ class SpeciesScaper:
 
 
       self.latexfile.write('\n')
-      self.latexfile.write('\\'+'begin{wrapfigure}{r}{\\textwidth}\n')
-      self.latexfile.write('\\'+'includegraphics[width=0.5\\linewidth]{'+plotdf.Filename+'}\n')
-      self.latexfile.write('\\'+'end{wrapfigure}\n')
+      self.latexfile.write('\\begin{wrapfigure}{r}{\\textwidth}\n')
+      self.latexfile.write('\\includegraphics[width=0.4\\linewidth]{'+plotdf.Filename+'}\n')
+      self.latexfile.write('\\end{wrapfigure}\n')
 
    def CreateWebDriver(self):
       self.browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -187,9 +270,10 @@ class SpeciesScaper:
       self.DataFrame = pd.DataFrame()
 
       for i in indexrange:
-         if(i==61):
-            # Avoid bug in dutchavifauna.nl
+         if(self.collectedNames[i] in self.donotcheck):
+            print("Not checking " + self.collectedNamesPretty[i])
             continue
+
          print("[" + str(i+1) + "/" + str(self.nSpecies)+ "] " + str(self.collectedNamesPretty[i]))
          self.FindData(i)
 
@@ -266,8 +350,6 @@ parser.add_argument('--new-data', dest='give_new_data', action='store_true')
 parser.set_defaults(give_new_data=False)
 args = parser.parse_args()
 
-print(args.give_new_data)
-
 link = "https://www.dutchavifauna.nl/list"
 
 speciesscraper = SpeciesScaper()
@@ -278,5 +360,5 @@ if(args.give_new_data):
 
 speciesscraper.ReadData()
 for month_in in range(1,13):
-   for period_in in range(1,3):
+   for period_in in range(1,4):
       speciesscraper.PlotAllData(month_in, period_in)
