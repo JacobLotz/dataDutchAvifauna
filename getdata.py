@@ -169,27 +169,25 @@ class SpeciesScaper:
       if self.period == 1:
          if self.month == 0:
             total = d2[-1]+d0[0]+d1[0]
-            xm1 = 11 + 0.1
-            xm2 = 0 + 0.1
          else:
             total = d2[self.month-1]+d0[self.month]+d1[self.month]
-            xm1 = self.month-1 + 0.1
-            xm2 = self.month + 0.1
+
+         xm1 = self.month - 0.3
+         xm2 = self.month - 0.1
 
       elif self.period == 2:
          total = d0[self.month]+d1[self.month]+d2[self.month]
-         xm1 = self.month - 0.3
-         xm2 = self.month + 0.3
+         xm1 = self.month - 0.1
+         xm2 = self.month + 0.1
 
       elif self.period == 3:
          if self.month == 11:
             total = d1[-1] + d2[-1] + d0[0]
-            xm1 = self.month - 0.1
-            xm2 = 0 - 0.1
          else:
             total = d1[self.month] + d2[self.month] + d0[self.month+1]
-            xm1 = self.month - 0.1
-            xm2 = self.month + 1 - 0.1
+
+         xm1 = self.month + 0.1
+         xm2 = self.month + 0.3
 
       if total < 3:
          return

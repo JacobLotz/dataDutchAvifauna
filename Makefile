@@ -4,9 +4,10 @@ all: plot pdf
 
 plot:
 	python3 getdata.py
-new:
+
+newdata:
 	python3 getdata.py --new-data
-	pdf
+
 pdf:
 	mkdir pdfs
 	cp */*.pdf pdfs/.
@@ -18,4 +19,6 @@ cleandata:
 	
 fresh: clean cleandata
 
+new:
+	newdata pdf
 	
